@@ -1,19 +1,24 @@
 import Examples from '../models/Example'
 
+interface CreateExampleDTO {
+  examples: string;
+  furtherData: string;
+}
+
 class ExampleRepository {
-    private examples: Examples[]
+  private examples: Examples[]
 
-    constructor() {
-        this.examples = []
-    }
+  constructor() {
+    this.examples = []
+  }
 
-    public create(example: string, furtherData: string ): Examples {
-        const examples = new Examples(example, furtherData)
+  public create({ examples, furtherData }: CreateExampleDTO): Examples {
+    const example = new Examples({ examples, furtherData })
 
-        this.examples.push(examples)
+    this.examples.push(example)
 
-        return examples
-    }
+    return example
+  }
 }
 
 export default ExampleRepository
