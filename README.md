@@ -37,17 +37,25 @@ export default routes
 import { Router } from 'express'
 
 import ExamplesRepository from '../repositories/ExampleRepository'
+import CreateExampleService from '../services/CreateExampleServices'
 
 const exampleRoutes = Router()
 
-const myExamples = new ExamplesRepository()
+const exampleRepository = new ExamplesRepository()
 
 exampleRoutes.post('/', (request, response) => {
+  try {
     const { examples, furtherData } = request.body
 
-    const example = myExamples.create(examples, furtherData)
+    const createEexample = new CreateExampleService(exampleRepository)
+
+    const example = createEexample.execute({ examples, furtherData })
 
     return response.json(example)
+  } catch (error) {
+    return response.status(400).json({ error: error })
+  }
+
 })
 
 export default exampleRoutes
@@ -57,14 +65,14 @@ Na pasta models crie o arquivo Example.ts
 
 ```tsx
 class Examples {
-    public examples: string
+  public examples: string
 
-    public furtherData: string
+  public furtherData: string
 
-    constructor(examples: string, furtherData: string) {
-        this.examples = examples
-        this.furtherData = furtherData
-    }
+  constructor({ examples, furtherData }: Omit<Examples, ''>) {
+    this.examples = examples
+    this.furtherData = furtherData
+  }
 }
 
 export default Examples
@@ -75,20 +83,25 @@ E na pasta repositories crie o arquivo ExampleRepository.ts
 ```tsx
 import Examples from '../models/Example'
 
+interface CreateExampleDTO {
+  examples: string;
+  furtherData: string;
+}
+
 class ExampleRepository {
-    private examples: Examples[]
+  private examples: Examples[]
 
-    constructor() {
-        this.examples = []
-    }
+  constructor() {
+    this.examples = []
+  }
 
-    public create(example: string, furtherData: string ): Examples {
-        const examples = new Examples(example, furtherData)
+  public create({ examples, furtherData }: CreateExampleDTO): Examples {
+    const example = new Examples({ examples, furtherData })
 
-        this.examples.push(examples)
+    this.examples.push(example)
 
-        return examples
-    }
+    return example
+  }
 }
 
 export default ExampleRepository
@@ -111,6 +124,12 @@ app.listen(3334, () => {
     console.log('🚀 Server is running on port 3334')
 })
 ```
+
+## Services
+
+Os services são responsáveis por conter apenas a regra de negócio da nossa aplicação, com únicas e exclusivas responsabilidade, exemplo (criar). Desacoplando isso da nossa **rota**, que deve ser responsável apenas por **receber a requisição, chamar outro arquivo e devolver uma resposta.** 
+
+Esses desaclopamentos servem para deixarmos o código mais flexível seguindo o padrão SOLID, onde neste caso aplicamos o SoC → Separation of Concerns ou SRP → Single Responsibility Principle
 
 Pronto! Agora podemos testar a nossa aplicação via [Insomnia](https://insomnia.rest/) e ver que esta tudo funcionando.
 
